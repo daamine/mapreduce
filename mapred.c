@@ -39,13 +39,13 @@ int main(int argc, char** argv) {
     printf("the number of threads: %s \n",argv[2]);
     
 //    while ( fgets( line, 1000, in_file ) != NULL ) 
-      char* line ;
       char* n; 
-      while ( (n = get_filled_buffer(in_file)) != NULL &&  (line = strdup(n)) != NULL ){
-            if (line[0] != '\n') {
+      while ( (n = get_filled_buffer(in_file)) != NULL /*&&  (line = strdup(n)) != NULL*/ ){
+            char* line = strdup(n);
+            if ( (line != NULL) && (line[0] != '\n') ) {
                 printf("The line is: %s %ld \n", line, strlen(line));
             }
+            free(line);
        }
-       free(line);
-
+       fclose(in_file);
 }
