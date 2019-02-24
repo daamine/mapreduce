@@ -33,6 +33,20 @@ void iterator(gpointer key, gpointer value, gpointer user_data) {
  printf(user_data, (char *)key, *(char*) value);
 }
 
+void show(gpointer key, gpointer user_data) {
+  GHashTable** hash = user_data ; 
+  printf("Amine %s \n", (char *)key);
+}
+
+void reduce(gpointer key, gpointer user_data) {
+   printf("reduce %s \n", (char *)key);
+}
+
+int compare_string(gpointer a, gpointer b) {
+ //return strcmp((char*)a,(char*)b);
+ return g_ascii_strcasecmp((char*)a,(char*) b);
+}
+
 void* call_map(void* data)
 {
 
@@ -135,4 +149,47 @@ printf("WARNING: we will limit then the numbers of threads to number of lines\n"
        pthread_join(task[i],(void**) &hash[i]); // les threads synchronisent
        g_hash_table_foreach(hash[i], (GHFunc)iterator, "The occurence of %s is %d\n");
      }
+   
+    GList * words[nb_threads];
+    for(i=0;i<nb_threads;i++){
+          words[i] = g_hash_table_get_keys (hash[i]);
+          if (i>0) {
+              words[0] = g_list_concat(words[0],words[i]);
+          }
+        
+/*        if ( !g_hash_table_contains(hash[0],pch) ){
+             *value = 1;
+             g_hash_table_insert(hash, pch, value);
+        }
+        else {
+
+             value = (char *)(g_hash_table_lookup(hash,pch));
+             printf ("value: %d\n", *value);
+             (*value)++;
+             printf ("value: %d\n",*value);
+             g_hash_table_replace (hash, pch, value);
+       } */
+   }
+   words[0]= g_list_sort(words[0],(GCompareFunc)compare_string);
+   g_list_foreach(words[0], (GFunc)show, NULL);
+   
+   //g_list_foreach(words[0], (GFunc)reduce, (void**) &hash);
+   GList *l;
+   for (l = words[0]; l != NULL; l = l->next)
+   {
+           int occurence = 0;
+           char prev_word[1000]; 
+           if (strcmp(prev_word,l->data)){
+           for(i=0;i<nb_threads;i++){ 
+
+                     if ( g_hash_table_contains(hash[i], l->data )) {
+                             
+                          occurence += *(char *)(g_hash_table_lookup(hash[i], l->data));
+                     }
+           }
+           printf ("occurence of %s  %d\n", l->data , occurence);
+           }
+           strcpy(prev_word,l->data);
+   }
+
 }
