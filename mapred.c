@@ -30,16 +30,16 @@ char *get_filled_buffer(FILE* in_file) {
 }
 
 void iterator(gpointer key, gpointer value, gpointer user_data) {
- printf(user_data, (char *)key, *(char*) value);
+// printf(user_data, (char *)key, *(char*) value);
 }
 
 void show(gpointer key, gpointer user_data) {
   GHashTable** hash = user_data ; 
-  printf("Amine %s \n", (char *)key);
+//  printf("Amine %s \n", (char *)key);
 }
 
 void reduce(gpointer key, gpointer user_data) {
-   printf("reduce %s \n", (char *)key);
+//   printf("reduce %s \n", (char *)key);
 }
 
 int compare_string(gpointer a, gpointer b) {
@@ -50,7 +50,7 @@ int compare_string(gpointer a, gpointer b) {
 void* call_map(void* data)
 {
 
-  printf("Thread The line is: %s %ld \n",(char *) data, strlen((char *)data));
+//  printf("Thread The line is: %s %ld \n",(char *) data, strlen((char *)data));
   char* ch = (char* ) data;
   GHashTable* hash = g_hash_table_new(g_str_hash, g_str_equal);
   char *pch; 
@@ -58,7 +58,7 @@ void* call_map(void* data)
 
   while (pch = strtok_r(ch," .,;:!?-\t",&ch))
   {
-    printf ("splitted word: %s\n",pch);   
+//    printf ("splitted word: %s\n",pch);   
     unsigned char* value = (unsigned char *) malloc (sizeof(unsigned char));
     if ( !g_hash_table_contains(hash,pch) ){
         *value = 1;
@@ -67,12 +67,12 @@ void* call_map(void* data)
     else {
           
             value = (unsigned char *)(g_hash_table_lookup(hash,pch));
-            printf ("value: %d\n", *value);
+//            printf ("value: %d\n", *value);
             (*value)++;
-            printf ("value: %d\n",*value);
+//            printf ("value: %d\n",*value);
             g_hash_table_replace (hash, pch, value);
     }
-    printf ("splitted word: %d\n",  *(unsigned char *)(g_hash_table_lookup(hash,pch)));
+//    printf ("splitted word: %d\n",  *(unsigned char *)(g_hash_table_lookup(hash,pch)));
 //    pch = strtok_r (NULL, " .,;:!?-\t",&saveptr1);
   }
   g_hash_table_foreach(hash, (GHFunc)iterator, "in call_map The occurence of %s is %d\n");
@@ -111,7 +111,10 @@ int main(int argc, char** argv) {
     int nb_lines = 0; 
 
       char* n; 
-      char data[nb_threads][100000];
+      char* data[nb_threads];
+      int j=0;
+      for (j=0;j<nb_threads;j++)
+          data[j] = (char*) malloc(10000000);
       int index = 0;
       while ( (n = get_filled_buffer(in_file)) != NULL ){
             char* line = strdup(n);
@@ -119,8 +122,8 @@ int main(int argc, char** argv) {
             if ( (line != NULL) && (line[0] != '\n') ) {
                 line[strlen(line)-1] = ' ';
                 strcat(data[index],line);
-                printf("The line is: %s %ld \n",line, strlen(line));
-                printf("Amine The line is: %d  %s %ld \n", index, data[index], strlen(data[index]));
+//                printf("The line is: %s %ld \n",line, strlen(line));
+//                printf("Amine The line is: %d  %s %ld \n", index, data[index], strlen(data[index]));
                 index++;
                 nb_lines++;
 
@@ -142,6 +145,7 @@ printf("WARNING: we will limit then the numbers of threads to number of lines\n"
          pthread_create(&task[i],NULL,call_map,(void *)data[i]);
      }
 
+      
     GHashTable* hash[nb_threads] ;  
     for(i=0;i<nb_threads;i++)
      {
@@ -150,6 +154,9 @@ printf("WARNING: we will limit then the numbers of threads to number of lines\n"
        g_hash_table_foreach(hash[i], (GHFunc)iterator, "The occurence of %s is %d\n");
      }
  
+//    for (j=0;j<nb_threads;j++)
+//          free(data[j]);
+
     GList * words[nb_threads];
     for(i=0;i<nb_threads;i++){
           words[i] = g_hash_table_get_keys (hash[i]);
@@ -162,11 +169,12 @@ printf("WARNING: we will limit then the numbers of threads to number of lines\n"
    g_list_foreach(words[0], (GFunc)show, NULL);
    
    //g_list_foreach(words[0], (GFunc)reduce, (void**) &hash);
+
    GList *l;
    for (l = words[0]; l != NULL; l = l->next)
    {
            int occurence = 0;
-           char prev_word[1000]; 
+           char prev_word[100000]; 
            if (strcmp(prev_word,l->data)){
            for(i=0;i<nb_threads;i++){ 
 
@@ -174,11 +182,15 @@ printf("WARNING: we will limit then the numbers of threads to number of lines\n"
                              
                           occurence += *(unsigned char *)(g_hash_table_lookup(hash[i], l->data));
                      }
-           }
-           printf ("occurence of %s  %d\n", l->data , occurence);
+ 
+          }
+           printf ("occurence of %s  %d\n", (char *)l->data , occurence);
            }
            strcpy(prev_word,l->data);
    }
+
+   for (j=0;j<nb_threads;j++)
+          free(data[j]);
 
    for(i=0;i<nb_threads;i++)
    {
