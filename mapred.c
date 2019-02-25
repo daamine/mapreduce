@@ -3,6 +3,11 @@
   *   @link https://github.com/daamine
 */
 
+/*
+   Limitations: 
+         1- Due to some issues to use an int value in g_hash_table_new for a string key, we are using a "unsigned char" to calculate the occurences per thread and thus if the occurences exceed the limit of "unsigned char" (which is usually 255) we will have some overflows. So we need to better handle this part to avoid the overflow.     
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
