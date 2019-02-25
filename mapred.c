@@ -44,7 +44,7 @@ void reduce(gpointer key, gpointer user_data) {
 
 int compare_string(gpointer a, gpointer b) {
  //return strcmp((char*)a,(char*)b);
- return g_ascii_strcasecmp((char*)a,(char*) b);
+ return strcmp((char*)a,(char*) b);
 }
 
 void* call_map(void* data)
@@ -59,20 +59,20 @@ void* call_map(void* data)
   while (pch = strtok_r(ch," .,;:!?-\t",&ch))
   {
     printf ("splitted word: %s\n",pch);   
-    char* value = (char *) malloc (sizeof(char));
+    unsigned char* value = (unsigned char *) malloc (sizeof(unsigned char));
     if ( !g_hash_table_contains(hash,pch) ){
         *value = 1;
         g_hash_table_insert(hash, pch, value);
     }
     else {
           
-            value = (char *)(g_hash_table_lookup(hash,pch));
+            value = (unsigned char *)(g_hash_table_lookup(hash,pch));
             printf ("value: %d\n", *value);
             (*value)++;
             printf ("value: %d\n",*value);
             g_hash_table_replace (hash, pch, value);
     }
-    printf ("splitted word: %d\n",  *(char *)(g_hash_table_lookup(hash,pch)));
+    printf ("splitted word: %d\n",  *(unsigned char *)(g_hash_table_lookup(hash,pch)));
 //    pch = strtok_r (NULL, " .,;:!?-\t",&saveptr1);
   }
   g_hash_table_foreach(hash, (GHFunc)iterator, "in call_map The occurence of %s is %d\n");
@@ -172,7 +172,7 @@ printf("WARNING: we will limit then the numbers of threads to number of lines\n"
 
                      if ( g_hash_table_contains(hash[i], l->data )) {
                              
-                          occurence += *(char *)(g_hash_table_lookup(hash[i], l->data));
+                          occurence += *(unsigned char *)(g_hash_table_lookup(hash[i], l->data));
                      }
            }
            printf ("occurence of %s  %d\n", l->data , occurence);
