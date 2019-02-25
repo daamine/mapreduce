@@ -15,7 +15,7 @@
 #define DEBUG_PRINT(x) do {} while (0)
 #endif
 
-#define MAX_DATA_LENGTH 10000000 /* 10MB */
+#define MAX_DATA_LENGTH 10000000	/* 10MB */
 
 
 /* funtion to get the next line from an input file */
@@ -77,7 +77,7 @@ call_map (void *data)
   DEBUG_PRINT (("Inside thread function, The line is: %s %ld \n",
 		(char *) data, strlen ((char *) data)));
   char *ch = (char *) data;
-  GHashTable *hash = g_hash_table_new (g_str_hash, g_str_equal);  /* using the hashtable from GLIB */
+  GHashTable *hash = g_hash_table_new (g_str_hash, g_str_equal);	/* using the hashtable from GLIB */
   char *pch;
   int i = 0;
 /* we fetch the words seperated by the delimeters " .,;:!?-\t" using strtok_r which is thread safe */
@@ -101,7 +101,7 @@ call_map (void *data)
     }
   g_hash_table_foreach (hash, (GHFunc) iterator,
 			"in call_map The occurence of %s is %d\n");
-  return hash; /* each thread return a hashtable containing the words as keys and the occurences as values */
+  return hash;			/* each thread return a hashtable containing the words as keys and the occurences as values */
 }
 
 
@@ -118,7 +118,7 @@ main (int argc, char **argv)
 
   DEBUG_PRINT (("the file name is %s \n", argv[1]));
 
-  FILE *input_file = fopen (argv[1], "r");   /* open the input file */
+  FILE *input_file = fopen (argv[1], "r");	/* open the input file */
   if (input_file == NULL)
     {
       printf ("Error: Could not open the file\n");
@@ -127,7 +127,7 @@ main (int argc, char **argv)
 
   if (argv[2][0] == '-')
     {
-      printf ("Sorry, you have negative value. \n");
+      printf ("Sorry, you have entered negative value. \n");
       exit (-1);
     }
   unsigned int nb_threads = atoi (argv[2]);
@@ -142,15 +142,15 @@ main (int argc, char **argv)
   int nb_lines = 0;
 
   char *n;
-  char *data[nb_threads] ;
+  char *data[nb_threads];
   int j = 0;
   for (j = 0; j < nb_threads; j++)
     {
-      data[j] = (char *) calloc (MAX_DATA_LENGTH, sizeof(char));
+      data[j] = (char *) calloc (MAX_DATA_LENGTH, sizeof (char));
     }
   int index = 0;
 
-/********************* MAP step: go through the file and distribute the lines on the threads equally*************************/ 
+/********************* MAP step: go through the file and distribute the lines on the threads equally*************************/
   while ((n = get_next_line (input_file)) != NULL)
     {
       char *line = strdup (n);
@@ -174,16 +174,16 @@ main (int argc, char **argv)
       printf
 	("WARNING: the number of threads are more than the number of lines in file\n");
       printf
-	("WARNING: we will limit then the numbers of threads to number of lines\n");
+	("WARNING: we are limiting the numbers of threads to number of lines\n");
       nb_threads = nb_lines;
     }
-  fclose (input_file);     /* close the file */
+  fclose (input_file);		/* close the file */
 
   pthread_t task[nb_threads];
   int i;
   for (i = 0; i < nb_threads; i++)
     {
-      pthread_create (&task[i], NULL, call_map, (void *) data[i]);  /* threads creation */
+      pthread_create (&task[i], NULL, call_map, (void *) data[i]);	/* threads creation */
     }
 
 
@@ -197,7 +197,7 @@ main (int argc, char **argv)
 
 /********************** REDUCE step: use the results returned by threads and output the final result. */
 
-/* We take the list of words per HashMap, we concatenate them in a single list then we sort the final list */ 
+/* We take the list of words per HashMap, we concatenate them in a single list then we sort the final list */
   GList *words[nb_threads];
   for (i = 0; i < nb_threads; i++)
     {
@@ -212,12 +212,12 @@ main (int argc, char **argv)
   words[0] = g_list_sort (words[0], (GCompareFunc) compare_string);
   g_list_foreach (words[0], (GFunc) show, NULL);
 
-  GList *l = NULL;  
+  GList *l = NULL;
   for (l = words[0]; l != NULL; l = l->next)
     {
       int occurence = 0;
-      char prev_word[100000] ;
-      if (strcmp (prev_word, l->data))   /* Unfortunately, there is no Set data structure in C, so we should avoid the redundant values in the list. */
+      char prev_word[100000];
+      if (strcmp (prev_word, l->data))	/* Unfortunately, there is no Set data structure in C, so we should avoid the redundant values in the list. */
 	{
 	  for (i = 0; i < nb_threads; i++)
 	    {
@@ -226,7 +226,8 @@ main (int argc, char **argv)
 		{
 
 		  occurence +=
-		    *(unsigned char *) (g_hash_table_lookup (hash[i], l->data));
+		    *(unsigned char
+		      *) (g_hash_table_lookup (hash[i], l->data));
 		}
 
 	    }
@@ -237,16 +238,15 @@ main (int argc, char **argv)
 
   for (j = 0; j < nb_threads; j++)
     {
-      if (words[j]) {
-//          g_list_free(words[j]);
-      }
-      if (data[j]){
-          free (data[j]);
-      }
-      if(hash[j]){
-         g_hash_table_remove_all (hash[j]);
-         g_hash_table_unref(hash[j]);
-      }
+      if (data[j])
+	{
+	  free (data[j]);
+	}
+      if (hash[j])
+	{
+	  g_hash_table_remove_all (hash[j]);
+	  g_hash_table_unref (hash[j]);
+	}
     }
 
 }
