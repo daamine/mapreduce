@@ -3,10 +3,6 @@
   *   @link https://github.com/daamine
 */
 
-/*
-   Limitations: 
-         1- Due to some issues to use an int value in g_hash_table_new for a string key, we are using a "unsigned char" to calculate the occurences per thread and thus if the occurences exceed the limit of "unsigned char" (which is usually 255) we will have some overflows. So we need to better handle this part to avoid the overflow.     
-*/
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -91,16 +87,19 @@ call_map (void *data)
       DEBUG_PRINT (("splitted word: %s\n", pch));
       unsigned char *value =
 	(unsigned char *) malloc (sizeof (unsigned char));
+      int v = 0;
       if (!g_hash_table_contains (hash, pch))
 	{
-	  *value = 1;
+	  v = 1;
+	  sprintf (value, "%d", v);
 	  g_hash_table_insert (hash, pch, value);
 	}
       else
 	{
 
-	  value = (unsigned char *) (g_hash_table_lookup (hash, pch));
-	  (*value)++;
+	  v = atoi ((g_hash_table_lookup (hash, pch)));
+	  v++;
+	  sprintf (value, "%d", v);
 	  g_hash_table_replace (hash, pch, value);
 	}
     }
@@ -231,8 +230,7 @@ main (int argc, char **argv)
 		{
 
 		  occurence +=
-		    *(unsigned char
-		      *) (g_hash_table_lookup (hash[i], l->data));
+		    atoi ((g_hash_table_lookup (hash[i], l->data)));
 		}
 
 	    }
